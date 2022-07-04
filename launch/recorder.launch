@@ -1,7 +1,7 @@
 <launch>
     <env name="ROS_HOME" value="$(find realsense_recorder)/" />
     <arg name="serial_no"             default=""/>
-    <arg name="json_file_path"        default=""/>
+    <arg name="json_file_path"        default="$(find realsense_recorder)/config/camera_config.json"/>
     <arg name="ns"                default="camera"/>
 
     <group ns="$(arg ns)">
