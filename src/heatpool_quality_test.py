@@ -5,9 +5,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 MAX_VAL = 255
-THRESHOLD = 250
+THRESHOLD = 240
 TORCH_FLAME_CENTER = (332, 478)
-STRENGTH_WEIGHTS = np.array([3,2,1]) #B G R
+STRENGTH_WEIGHTS = np.array([0.4, 0.2, 0.1]) #B G R
 # def close_image
 
 def sortContour(x):
@@ -18,7 +18,7 @@ def sortContour(x):
         centroid = (int(cm["m10"]/cm['m00']), int(cm["m01"]/cm["m00"]))
         dist = ((centroid[0]-TORCH_FLAME_CENTER[0])**2 + (centroid[1]-TORCH_FLAME_CENTER[1])**2)**0.5
         # print(cv2.contourArea(x), dist, cv2.contourArea(x)*(1/(dist**4+(10**-5))))
-        return cv2.contourArea(x)*(1/(dist**4+(10**-5)))
+        return cv2.contourArea(x)*(1/(dist**2+(10**-5)))
 
 def fit_ellipse(img):
     b, g, r = cv2.split(img)
@@ -61,9 +61,9 @@ def fit_ellipse(img):
         ellipse_center = (int(ellipse_rect[0][0]),int(ellipse_rect[0][1]))
         ellipse_axes = (int(ellipse_rect[1][0]/2),int(ellipse_rect[1][1]/2))
         if ellipse_axes[1] == 0:
-            ellipse_shape = 0
+            ellipse_shape = 1
         else:
-            ellipse_shape = ellipse_axes[0]/ellipse_axes[1]
+            ellipse_shape = np.sqrt(1 - (ellipse_axes[0]/ellipse_axes[1])**2)
         # print("shape = ", shape)
         theta = ellipse_rect[2]
         cv2.ellipse(ellipse_image, ellipse_center, ellipse_axes, theta, 0, 360, (255, 255, 255), cv2.FILLED)
@@ -72,7 +72,7 @@ def fit_ellipse(img):
         ellipse_pixel_values = ellipse_pixel_values / 255
         ellipse_sum = np.sum(ellipse_pixel_values, 0)
         ellipse_strength = np.dot(ellipse_sum, STRENGTH_WEIGHTS.T)
-        print("Strength =", ellipse_strength, " Shape = ", ellipse_shape)
+        print("Strength =", ellipse_strength, " Shape =", ellipse_shape, "Angle =", theta)
         # print(ellipse_pixel_values.shape)
         # cv2.drawContours(img_copy_2, [ellipse_points], 0, (255, 255, 255), 3)
         cv2.imshow("Ellipse", ellipse_image)
@@ -84,6 +84,11 @@ def fit_ellipse(img):
 if __name__ == '__main__':
     plt.ion()
     path = "output/06132022_161721/images_06132022_161721/"
+    # path = "output/06272022_170520/images_06272022_170520"
+    # path = "output/06132022_155854/images_06132022_155854"
+    # path = "output/06022022_151612/images"
+    # path = "output/06272022_163902/images_06272022_163902"
+
     if os.path.isdir(path):
         images = os.listdir(path)
         images.sort()
@@ -118,4 +123,4 @@ if __name__ == '__main__':
             # cv2.imshow("Green Bin Stack", green_bin_stack)
             # cv2.imshow("Blue Bin Stack", blue_bin_stack)
             
-            cv2.waitKey(1)
+            cv2.waitKey(0)
